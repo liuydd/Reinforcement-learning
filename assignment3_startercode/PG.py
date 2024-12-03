@@ -76,17 +76,18 @@ class ReinforcementLearning:
 
         return cum_rewards, theta
 
-    def actorCritic(self, theta, alpha=0.01, beta=0.01, max_steps=100, nEpisodes=1000):
+    def actorCritic(self, theta, alpha=0.001, beta=0.001, max_steps=100, nEpisodes=1000):
         n_actions, n_states = self.mdp.R.shape
         if theta is None:
             theta = np.random.rand(n_states, n_actions)
         w = np.zeros(n_states)  # Value function parameters
 
-        cum_rewards = []
+        cum_rewards = np.zeros(nEpisodes)
 
         for episode in range(nEpisodes):
-            state = np.random.choice(range(n_states))
-            total_reward = 0
+            # state = np.random.choice(range(n_states))
+            state = 0
+            I = 1
 
             for t in range(max_steps):
                 probs = self.policy(theta, state)
@@ -100,17 +101,16 @@ class ReinforcementLearning:
                 w[state] += beta * td_error
 
                 # Actor update
-                grad_log_pi = -probs
+                grad_log_pi = -np.ones_like(probs) / self.mdp.nActions
                 grad_log_pi[action] += 1
-                theta[:, state] += alpha * td_error * grad_log_pi
+                theta[:, state] += alpha * I * td_error * grad_log_pi
 
-                total_reward += (self.mdp.discount ** t) * reward
+                cum_rewards[episode] += (self.mdp.discount ** t) * reward
+                I = self.mdp.discount * I
                 state = next_state
 
                 if t >= max_steps - 1:
                     break
-
-            cum_rewards.append(total_reward)
 
         return cum_rewards, theta
 
