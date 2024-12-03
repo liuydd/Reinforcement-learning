@@ -41,7 +41,7 @@ class ReinforcementLearning:
         probs = exp_logits / np.sum(exp_logits)
         return probs
 
-    def reinforce(self, theta, alpha=0.001, max_steps=100, nEpisodes=1000):
+    def reinforce(self, theta, alpha=0.001, nEpisodes=3000):
         n_actions, n_states = self.mdp.R.shape
         if theta is None:
             theta = np.random.rand(n_states, n_actions)
@@ -52,18 +52,19 @@ class ReinforcementLearning:
             # state = np.random.choice(range(n_states))
             state = 0
             trajectory = []
+            done = False
 
             # Generate episode
-            for t in range(max_steps):
+            while not done:
                 probs = self.policy(theta, state)
                 action = np.random.choice(range(n_actions), p=probs)
                 reward, next_state = self.sampleRewardAndNextState(state, action)
                 trajectory.append((state, action, reward))
-                cum_rewards[episode] += (self.mdp.discount ** t) * reward
+                cum_rewards[episode] += reward
                 state = next_state
 
-                if len(trajectory) >= max_steps:
-                    break
+                if state == self.mdp.nStates - 1:
+                    done = True
 
             # Policy gradient update
             for t, (s, a, r) in enumerate(trajectory):
@@ -71,12 +72,11 @@ class ReinforcementLearning:
                 probs = self.policy(theta, s)
                 grad_log_pi = -np.ones_like(probs) / self.mdp.nActions
                 grad_log_pi[a] += 1
-                
                 theta[:, s] += alpha * (self.mdp.discount ** t) * G_t * grad_log_pi
 
         return cum_rewards, theta
 
-    def actorCritic(self, theta, alpha=0.001, beta=0.001, max_steps=100, nEpisodes=1000):
+    def actorCritic(self, theta, alpha=0.001, beta=0.001, nEpisodes=3000):
         n_actions, n_states = self.mdp.R.shape
         if theta is None:
             theta = np.random.rand(n_states, n_actions)
@@ -88,8 +88,9 @@ class ReinforcementLearning:
             # state = np.random.choice(range(n_states))
             state = 0
             I = 1
+            done = False
 
-            for t in range(max_steps):
+            while not done:
                 probs = self.policy(theta, state)
                 action = np.random.choice(range(n_actions), p=probs)
                 reward, next_state = self.sampleRewardAndNextState(state, action)
@@ -105,12 +106,13 @@ class ReinforcementLearning:
                 grad_log_pi[action] += 1
                 theta[:, state] += alpha * I * td_error * grad_log_pi
 
-                cum_rewards[episode] += (self.mdp.discount ** t) * reward
+                cum_rewards[episode] += reward
                 I = self.mdp.discount * I
                 state = next_state
 
-                if t >= max_steps - 1:
-                    break
+                if state == self.mdp.nStates - 1:
+                    done = True
+                      
 
         return cum_rewards, theta
 
