@@ -41,17 +41,17 @@ class ReinforcementLearning:
         probs = exp_logits / np.sum(exp_logits)
         return probs
 
-    def reinforce(self, theta, alpha=0.01, max_steps=100, nEpisodes=1000):
+    def reinforce(self, theta, alpha=0.001, max_steps=100, nEpisodes=1000):
         n_actions, n_states = self.mdp.R.shape
         if theta is None:
             theta = np.random.rand(n_states, n_actions)
 
-        cum_rewards = []
+        cum_rewards = np.zeros(nEpisodes)
 
         for episode in range(nEpisodes):
-            state = np.random.choice(range(n_states))
+            # state = np.random.choice(range(n_states))
+            state = 0
             trajectory = []
-            total_reward = 0
 
             # Generate episode
             for t in range(max_steps):
@@ -59,21 +59,20 @@ class ReinforcementLearning:
                 action = np.random.choice(range(n_actions), p=probs)
                 reward, next_state = self.sampleRewardAndNextState(state, action)
                 trajectory.append((state, action, reward))
-                total_reward += (self.mdp.discount ** t) * reward
+                cum_rewards[episode] += (self.mdp.discount ** t) * reward
                 state = next_state
 
                 if len(trajectory) >= max_steps:
                     break
 
-            cum_rewards.append(total_reward)
-
             # Policy gradient update
             for t, (s, a, r) in enumerate(trajectory):
                 G_t = sum([(self.mdp.discount ** k) * reward for k, (_, _, reward) in enumerate(trajectory[t:])])
                 probs = self.policy(theta, s)
-                grad_log_pi = -probs
+                grad_log_pi = -np.ones_like(probs) / self.mdp.nActions
                 grad_log_pi[a] += 1
-                theta[:, s] += alpha * grad_log_pi * G_t
+                
+                theta[:, s] += alpha * (self.mdp.discount ** t) * G_t * grad_log_pi
 
         return cum_rewards, theta
 
