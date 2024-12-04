@@ -76,7 +76,7 @@ class ReinforcementLearning:
 
         return cum_rewards, theta
 
-    def actorCritic(self, theta, alpha=0.001, beta=0.001, nEpisodes=3000):
+    def actorCritic(self, theta, alpha=0.001, beta=0.01, nEpisodes=3000):
         n_actions, n_states = self.mdp.R.shape
         if theta is None:
             theta = np.random.rand(n_states, n_actions)
@@ -117,30 +117,65 @@ class ReinforcementLearning:
         return cum_rewards, theta
 
 
-mdp = build_mazeMDP(b=0.1)
-rl = ReinforcementLearning(mdp, np.random.normal)
+# mdp = build_mazeMDP(b=0.1)
+# rl = ReinforcementLearning(mdp, np.random.normal)
 
-n_episode = 3000
-n_trials = 10
-n_states = mdp.R.shape[1]
-n_actions = mdp.R.shape[0]
-init_theta = np.zeros((n_actions, n_states))
+# n_episode = 3000
+# n_trials = 10
+# n_states = mdp.R.shape[1]
+# n_actions = mdp.R.shape[0]
+# init_theta = np.zeros((n_actions, n_states))
 
-# Test PG
-out = np.zeros([n_trials, n_episode])
-for i in range(n_trials):
-	cum_rewards, theta = rl.reinforce(theta=init_theta, nEpisodes=n_episode)
-	out[i, :] = np.array(cum_rewards)
-plt.plot(out.mean(axis=0), label='Reinforce')
+# # Test PG
+# out = np.zeros([n_trials, n_episode])
+# for i in range(n_trials):
+# 	cum_rewards, theta = rl.reinforce(theta=init_theta, alpha=0.001, nEpisodes=n_episode)
+# 	out[i, :] = np.array(cum_rewards)
+# plt.plot(out.mean(axis=0), label='Reinforce')
 
-# Test AC
-out = np.zeros([n_trials, n_episode])
-for i in range(n_trials):
-	# [cum_rewards, policy_ac, v] = rl.actorCritic()
-	cum_rewards, theta = rl.actorCritic(theta=init_theta, nEpisodes=n_episode)
-	out[i] = cum_rewards
-plt.plot(out.mean(axis=0), label='ActorCritic')
-plt.legend()
+# # Test AC
+# out = np.zeros([n_trials, n_episode])
+# for i in range(n_trials):
+# 	# [cum_rewards, policy_ac, v] = rl.actorCritic()
+# 	cum_rewards, theta = rl.actorCritic(theta=init_theta, alpha=0.001, beta=0.01, nEpisodes=n_episode)
+# 	out[i] = cum_rewards
+# plt.plot(out.mean(axis=0), label='ActorCritic')
+# plt.legend()
 
-plt.show()
+# plt.show()
 
+
+# b_values = [0.0, 0.1, 0.2, 0.3]
+# n_episode = 3000
+# n_trials = 10
+
+# plt.figure(figsize=(10, 6))
+
+# for b in b_values:
+#     mdp = build_mazeMDP(b=b)
+#     rl = ReinforcementLearning(mdp, np.random.normal)
+    
+#     n_states = mdp.R.shape[1]
+#     n_actions = mdp.R.shape[0]
+#     init_theta = np.zeros((n_actions, n_states))
+    
+#     # 存储结果
+#     out = np.zeros([n_trials, n_episode])
+#     for i in range(n_trials):
+#         cum_rewards, theta = rl.reinforce(theta=init_theta, alpha=0.001, nEpisodes=n_episode)
+#         # cum_rewards, theta = rl.actorCritic(theta=init_theta, alpha=0.001, beta=0.01, nEpisodes=n_episode)
+#         out[i, :] = np.array(cum_rewards)
+    
+#     # 计算平均累计奖励
+#     avg_cum_rewards = out.mean(axis=0)
+    
+#     # 绘制曲线
+#     plt.plot(avg_cum_rewards, label=f'b = {b}')
+
+# # 添加图例、标题和轴标签
+# plt.legend()
+# plt.title('REINFORCE')
+# plt.xlabel('Episodes')
+# plt.ylabel('Cumulative Rewards')
+# plt.grid(True)
+# plt.show()
