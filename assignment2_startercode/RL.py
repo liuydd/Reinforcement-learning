@@ -134,7 +134,7 @@ class ReinforcementLearning:
 				Q[action, state] += (W / N[action, state]) * (G - Q[action, state])
 				if action != np.argmax(Q[:, state]):
 					break 
-				W *= (1 - epsilon) / (1 - (1 - epsilon) / self.mdp.nActions)
+				W *= 1 / (1 - epsilon + epsilon / self.mdp.nActions)
 
 		policy = np.argmax(Q, axis=0)
 
